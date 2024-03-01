@@ -113,6 +113,26 @@ theme(legend.text=element_text(size=20,face="bold"))
 
 
 
+get_earliest_principal_node <- function(SMC_clean, time_bin="20"){
+  cell_ids <- which(colData(SMC_clean)[, "time"] == time_bin)
+
+  closest_vertex <-
+ SMC_clean@principal_graph_aux[["UMAP"]]$pr_graph_cell_proj_closest_vertex
+  closest_vertex <- as.matrix(closest_vertex[colnames(MP), ])
+  root_pr_nodes <-
+  igraph::V(principal_graph(MP)[["UMAP"]])$name[as.numeric(names
+  (which.max(table(closest_vertex[cell_ids,]))))]
+
+  root_pr_nodes
+}
+SMC_clean <- order_cells(SMC_clean, root_pr_nodes=get_earliest_principal_node(SMC_clean))
+plot_cells(SMC_clean, color_cells_by = "pseudotime", label_cell_groups=FALSE, label_leaves=FALSE, label_branch_points=FALSE, graph_label_size=1.5,cell_size = 0.7)+ NoLegend() +
+theme(axis.text=element_text(size=20,face="bold"), axis.title=element_text(size=20,face="bold")) +
+theme(legend.text=element_text(size=20,face="bold"))
+
+
+
+
 ##carotid
 
 
@@ -148,6 +168,26 @@ carotid_SMC_clean <- choose_cells(cds)
 carotid_SMC_clean = cluster_cells(SMC_clean, resolution=1e-4)
 plot_cells(SMC_clean, group_label_size = 4)
 
+
+
+get_earliest_principal_node <- function(carotid_SMC_clean, time_bin="20"){
+  cell_ids <- which(colData(carotid_SMC_clean)[, "time"] == time_bin)
+
+  closest_vertex <-
+ carotid_SMC_clean@principal_graph_aux[["UMAP"]]$pr_graph_cell_proj_closest_vertex
+  closest_vertex <- as.matrix(closest_vertex[colnames(MP), ])
+  root_pr_nodes <-
+  igraph::V(principal_graph(MP)[["UMAP"]])$name[as.numeric(names
+  (which.max(table(closest_vertex[cell_ids,]))))]
+
+  root_pr_nodes
+}
+carotid_SMC_clean <- order_cells(SMC_clean, root_pr_nodes=get_earliest_principal_node(SMC_clean))
+plot_cells(SMC_clean, color_cells_by = "pseudotime", label_cell_groups=FALSE, label_leaves=FALSE, label_branch_points=FALSE, graph_label_size=1.5,cell_size = 0.7)+ NoLegend() +
+theme(axis.text=element_text(size=20,face="bold"), axis.title=element_text(size=20,face="bold")) +
+theme(legend.text=element_text(size=20,face="bold"))
+
+
 ##bring to seurat object
 carotid_SMC <- carotid_SMC[, which(colnames(carotid_SMC) %in% colnames(SMC_clean))]
 #recluster
@@ -159,6 +199,26 @@ new.cluster.ids <- c( "hSMC7","hSMC6","hSMC4", "hSMC5","hSMC2","hSMC1","hSMC8","
 names(new.cluster.ids) <- levels(carotid_SMC)
 carotid_SMC <- RenameIdents(carotid_SMC, new.cluster.ids)
 carotid_SMC@active.ident <- factor( x = carotid_SMC@active.ident, levels = c( "hSMC1","hSMC2","hSMC3", "hSMC4", "hSMC5","hSMC6","hSMC7", "hSMC8"))
+
+plaque <- table(carotid_SMC@active.ident, carotid_SMC$symptom)
+plaque <- t(plaque)
+plaque <- data.frame(plaque[1,], plaque[2,])
+colnames(plaque) <- c("Stable", "Unstable")
+stable_pct = plaque$Stable/ rowSums(plaque)*100
+unstable_pct = plaque$Unstable/ rowSums(plaque)*100
+plaque$stable_pct <- stable_pct
+plaque$unstable_pct <- unstable_pct
+plaque_pct <- data.frame(plaque$stable_pct, plaque$unstable_pct)
+plaque_pct <- t(plaque_pct)
+colnames(plaque_pct) <- rownames(plaque)
+rownames(plaque_pct) <- c("Stable", "Unstable")
+par(mar = c(6,6,8,0) + 1)
+barplot(plaque_pct, col = status_list , cex.axis = 2, lwd = 3, cex =2, beside = FALSE)
+legend(12,115, legend = rownames(plaque_pct), fill=status_list, text.font = 2, cex= 2, xpd = TRUE)
+
+
+
+
 
 
 ###markers
