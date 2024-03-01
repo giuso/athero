@@ -242,7 +242,7 @@ for (i in levels(SMC_seurat)){
 }
 
 for (i in levels(carotid_SMC)){
-  markers_filt(SMC_seurat, i)
+  markers_filt(carotid_SMC, i)
 }
 
 
@@ -299,7 +299,7 @@ for(i in levels(SMC_seurat)){
   plot_GO(i)
 }
 
-for(i in levels(Mc_seurat)){
+for(i in levels(carotid_SMC)){
   plot_GO(i)
 }
 common_genes <- read.delim("geneTrans.txt", header = T, sep=",")
